@@ -1,0 +1,59 @@
+services:
+  db:
+    container_name: db
+    image: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: messaging_db
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    network_mode: "host"
+    # networks:
+    #   - app-network
+
+  rabbitmq:
+    container_name: rabitmq
+    image: rabbitmq:3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    network_mode: "host"
+    # networks:
+    #   - app-network
+
+  # app:
+  #   build:
+  #     context: .
+  #   environment:
+  #     - DATABASE_URL=postgres://user:password@db:5432/messaging_db?sslmode=disable
+  #     - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     rabbitmq:
+  #       condition: service_healthy
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - app-network
+
+volumes:
+  postgres_data:
+# networks:
+#   app-network:
+#     driver: bridge
